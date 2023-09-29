@@ -21,28 +21,38 @@ Here's a basic example of how to use `go-manifest`:
 package main
 
 import (
-	"fmt"
-	"os"
+	"context"
+	"log"
 
 	"github.com/totvs-cloud/go-manifest"
+	"k8s.io/client-go/rest"
 )
 
 func main() {
-	// Create a new Manifest object
-	m, err := manifest.NewManifest("path/to/your/manifest.yaml")
+	// Get the Kubernetes cluster configuration
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
+		log.Fatal(err)
+	}
+
+	// Instantiate a new ManifestReader by specifying the field manager and the Kubernetes cluster configuration
+	mr, err := manifest.NewReader("totvs-cloud", config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create a new Manifest object
+	m, err := mr.FromPath("path/to/your/manifest.yaml", false)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Apply the manifest using Server-Side Apply
-	err = m.Apply()
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
+	if err = m.Apply(context.Background()); err != nil {
+		log.Fatal(err)
 	}
 
-	fmt.Println("Manifest applied successfully!")
+	log.Println("Manifest applied successfully!")
 }
 ```
 
