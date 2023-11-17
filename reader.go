@@ -23,12 +23,21 @@ type Reader struct {
 }
 
 func NewReader(fieldManager string, config *rest.Config) (*Reader, error) {
-	m, err := newDynamicRESTMapper(config)
+	httpClient, err := rest.HTTPClientFor(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
+	}
+
+	return NewReaderForConfigAndClient(fieldManager, config, httpClient)
+}
+
+func NewReaderForConfigAndClient(fieldManager string, config *rest.Config, httpClient *http.Client) (*Reader, error) {
+	m, err := newDynamicRESTMapper(config, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize the manifest reader: %w", err)
 	}
 
-	c, err := dynamic.NewForConfig(config)
+	c, err := dynamic.NewForConfigAndClient(config, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize the manifest reader: %w", err)
 	}

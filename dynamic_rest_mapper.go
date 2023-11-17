@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"sync"
@@ -24,12 +25,7 @@ type dynamicRESTMapper struct {
 	mu sync.RWMutex
 }
 
-func newDynamicRESTMapper(cfg *rest.Config) (*dynamicRESTMapper, error) {
-	httpClient, err := rest.HTTPClientFor(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
-	}
-
+func newDynamicRESTMapper(cfg *rest.Config, httpClient *http.Client) (*dynamicRESTMapper, error) {
 	client, err := discovery.NewDiscoveryClientForConfigAndClient(cfg, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Discovery client: %w", err)
