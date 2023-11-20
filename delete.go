@@ -13,9 +13,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func (l *list) Delete(ctx context.Context) error {
+func (l *list) Delete(ctx context.Context, opts ...DeleteOptionFunc) error {
+	options := newDeleteOptions(opts...)
+
 	for _, v := range l.Resources() {
-		if err := l.delete(ctx, v); err != nil {
+		if err := l.delete(ctx, v, options); err != nil {
 			return err
 		}
 	}
@@ -23,7 +25,7 @@ func (l *list) Delete(ctx context.Context) error {
 	return nil
 }
 
-func (l *list) delete(ctx context.Context, obj *unstructured.Unstructured) error {
+func (l *list) delete(ctx context.Context, obj *unstructured.Unstructured, options *deleteOptions) error {
 	log := logr.FromContextOrDiscard(ctx)
 
 	gvk := obj.GroupVersionKind()
@@ -53,6 +55,10 @@ func (l *list) delete(ctx context.Context, obj *unstructured.Unstructured) error
 	}
 
 	log.Info(fmt.Sprintf("%s %q deleted", kind, obj.GetName()))
+
+	if !options.Wait {
+		return nil
+	}
 
 	return wait.ExponentialBackoff(defaultBackoff, func() (done bool, err error) {
 		_, err = resource.Get(ctx, obj.GetName(), metav1.GetOptions{})
