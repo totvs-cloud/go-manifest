@@ -9,7 +9,7 @@ import (
 )
 
 type List interface {
-	Delete(ctx context.Context) error
+	Delete(ctx context.Context, opts ...DeleteOptionFunc) error
 	Apply(ctx context.Context) error
 	Filter(funcs ...Filter) List
 	Transform(funcs ...Transformer) (List, error)
@@ -24,7 +24,7 @@ func EmptyList() List {
 
 type empty struct{}
 
-func (e *empty) Delete(ctx context.Context) error {
+func (e *empty) Delete(ctx context.Context, opts ...DeleteOptionFunc) error {
 	return nil
 }
 
