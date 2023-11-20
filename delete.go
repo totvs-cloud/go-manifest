@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func (l *list) Delete(ctx context.Context) error {
@@ -53,5 +54,14 @@ func (l *list) delete(ctx context.Context, obj *unstructured.Unstructured) error
 
 	log.Info(fmt.Sprintf("%s %q deleted", kind, obj.GetName()))
 
-	return nil
+	return wait.ExponentialBackoff(defaultBackoff, func() (done bool, err error) {
+		_, err = resource.Get(ctx, obj.GetName(), metav1.GetOptions{})
+		if errors.IsNotFound(err) {
+			return true, nil
+		} else if err != nil {
+			return false, err
+		}
+
+		return false, nil
+	})
 }
