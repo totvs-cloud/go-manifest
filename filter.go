@@ -1,6 +1,11 @@
 package manifest
 
-import "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+import (
+	"fmt"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/util/sets"
+)
 
 type Filter func(u *unstructured.Unstructured) bool
 
@@ -92,5 +97,20 @@ func ByLabels(labels map[string]string) Filter {
 		}
 
 		return false
+	}
+}
+
+func In(manifest List) Filter {
+	key := func(u *unstructured.Unstructured) string {
+		return fmt.Sprintf("%s|%s/%s", u.GroupVersionKind().GroupKind(), u.GetNamespace(), u.GetName())
+	}
+	index := sets.NewString()
+
+	for _, u := range manifest.Resources() {
+		index.Insert(key(u))
+	}
+
+	return func(u *unstructured.Unstructured) bool {
+		return index.Has(key(u))
 	}
 }
