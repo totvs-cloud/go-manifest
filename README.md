@@ -1,5 +1,9 @@
 # go-manifest
 
+> [!WARNING]  
+> **Update, June 2024**: _This repo and tool are no longer maintained.
+> Please see [github.com/cloud104/go-manifest](https://github.com/cloud104/go-manifest) for a maintained fork instead._
+
 `go-manifest` is a Go library inspired by [manifestival](https://github.com/manifestival/manifestival), but with a focus
 on using Kubernetes Server-Side Apply. Server-Side Apply is a powerful feature introduced in Kubernetes that allows you
 to declaratively update resources on the server side, which can be more efficient and reliable than traditional
